@@ -47,3 +47,5 @@ resources/nanogui-entypo
 
 compile_commands.json
 .clangd
+cmake-build-*
+.idea
