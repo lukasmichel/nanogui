@@ -71,7 +71,7 @@ public:
   virtual void draw(NVGcontext *ctx) override;
   virtual void draw_contents() override;
 
-  /// set the exposure value of the image. Implementation inspired by what Thomas Müller did for his nanogui version in the PPG implementation
+  virtual /// set the exposure value of the image. Implementation inspired by what Thomas Müller did for his nanogui version in the PPG implementation
   void set_exposure(float exposure);
 protected:
   nanogui::ref<Shader> m_image_shader;
