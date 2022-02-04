@@ -26,14 +26,24 @@ NAMESPACE_BEGIN(nanogui)
  */
 class NANOGUI_EXPORT ImageViewFalsecolor : public ImageView {
 public:
+
+  using MouseoverPixelCallback = std::function<void(const Vector2i &)>;
+
   /// Initialize the widget
   ImageViewFalsecolor(Widget *parent);
   /// set the exposure value of the image. Implementation inspired by what Thomas Müller did for his nanogui version in the PPG implementation
   void set_exposure(float exposure);
   virtual void draw_contents() override;
+  bool mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
+  /// Set the callback that is used to acquire information about pixel components
+  void set_mouseover_pixel_callback(const MouseoverPixelCallback &mouseover_pixel_callback) {
+	m_mouseover_pixel_callback = mouseover_pixel_callback;
+  }
 private:
   /// Added for exposure control
   float m_exposure = 0;
+protected:
+  MouseoverPixelCallback m_mouseover_pixel_callback;
 };
 
 NAMESPACE_END(nanogui)

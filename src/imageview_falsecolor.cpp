@@ -13,6 +13,7 @@
 
 #include <nanogui/imageview_falsecolor.h>
 #include <nanogui/renderpass.h>
+#include <nanogui/textbox.h>
 #include <nanogui/shader.h>
 #include <nanogui/texture.h>
 #include <nanogui/screen.h>
@@ -24,56 +25,56 @@ NAMESPACE_BEGIN(nanogui)
 ImageViewFalsecolor::ImageViewFalsecolor(Widget *parent) : ImageView(parent) {
   // the shader is not referenced yet, has a reference count of 0 and thus will throw an error on deletion
   if (m_image_shader->ref_count() == 0)
-    m_image_shader->inc_ref();
+	m_image_shader->inc_ref();
   while (m_image_shader->ref_count() > 1)
-    m_image_shader->dec_ref(true);
+	m_image_shader->dec_ref(true);
   //m_image_shader->dec_ref(true);
   m_image_shader = new Shader(
-      render_pass(),
-      /* An identifying name */
-      "a_simple_falsecolor_shader",
-      NANOGUI_SHADER(imageview_vertex),
-      NANOGUI_SHADER(imageview_falsecolor_fragment),
-      Shader::BlendMode::AlphaBlend
+	  render_pass(),
+	  /* An identifying name */
+	  "a_simple_falsecolor_shader",
+	  NANOGUI_SHADER(imageview_vertex),
+	  NANOGUI_SHADER(imageview_falsecolor_fragment),
+	  Shader::BlendMode::AlphaBlend
   );
   const float positions[] = {
-      0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
-      1.f, 0.f, 1.f, 1.f, 0.f, 1.f
+	  0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+	  1.f, 0.f, 1.f, 1.f, 0.f, 1.f
   };
-  m_image_shader->set_buffer("position", VariableType::Float32, { 6, 2 },
-                             positions);
+  m_image_shader->set_buffer("position", VariableType::Float32, {6, 2},
+							 positions);
 }
 
 // the ImageView::draw_contents() function, extended only with setting the exposure value
 void ImageViewFalsecolor::draw_contents() {
   if (!m_image)
-    return;
+	return;
 
   /* Ensure that 'offset' is a multiple of the pixel ratio */
   float pixel_ratio = screen()->pixel_ratio();
   m_offset = (Vector2f(Vector2i(m_offset / pixel_ratio)) * pixel_ratio);
 
   Vector2f bound1 = Vector2f(m_size) * pixel_ratio,
-      bound2 = -Vector2f(m_image->size()) * scale();
+	  bound2 = -Vector2f(m_image->size()) * scale();
 
   if ((m_offset.x() >= bound1.x()) != (m_offset.x() < bound2.x()))
-    m_offset.x() = std::max(std::min(m_offset.x(), bound1.x()), bound2.x());
+	m_offset.x() = std::max(std::min(m_offset.x(), bound1.x()), bound2.x());
   if ((m_offset.y() >= bound1.y()) != (m_offset.y() < bound2.y()))
-    m_offset.y() = std::max(std::min(m_offset.y(), bound1.y()), bound2.y());
+	m_offset.y() = std::max(std::min(m_offset.y(), bound1.y()), bound2.y());
 
   Vector2i viewport_size = render_pass()->viewport().second;
 
   float scale = std::pow(2.f, m_scale / 5.f);
 
- /* Matrix4f matrix_background =
-      Matrix4f::scale(Vector3f(m_image->size().x() * scale / 20.f,
-                               m_image->size().y() * scale / 20.f, 1.f));
-*/
+  /* Matrix4f matrix_background =
+	   Matrix4f::scale(Vector3f(m_image->size().x() * scale / 20.f,
+								m_image->size().y() * scale / 20.f, 1.f));
+ */
   Matrix4f matrix_image =
-      Matrix4f::ortho(0.f, viewport_size.x(), viewport_size.y(), 0.f, -1.f, 1.f) *
-          Matrix4f::translate(Vector3f(m_offset.x(), (int) m_offset.y(), 0.f)) *
-          Matrix4f::scale(Vector3f(m_image->size().x() * scale,
-                                   m_image->size().y() * scale, 1.f));
+	  Matrix4f::ortho(0.f, viewport_size.x(), viewport_size.y(), 0.f, -1.f, 1.f) *
+		  Matrix4f::translate(Vector3f(m_offset.x(), (int) m_offset.y(), 0.f)) *
+		  Matrix4f::scale(Vector3f(m_image->size().x() * scale,
+								   m_image->size().y() * scale, 1.f));
 
   m_image_shader->set_uniform("matrix_image", Matrix4f(matrix_image));
   //m_image_shader->set_uniform("matrix_background", Matrix4f(matrix_background));
@@ -90,4 +91,16 @@ void ImageViewFalsecolor::draw_contents() {
 void ImageViewFalsecolor::set_exposure(float exposure) {
   m_exposure = exposure;
 }
+bool ImageViewFalsecolor::mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) {
+  if (Widget::mouse_motion_event(p, rel, button, modifiers)) {
+	return true;
+  }
+  if (m_mouseover_pixel_callback) {
+	//Vector2i top_left = Vector2i(pixel_to_pos(Vector2f(0.f, 0.f)));
+	//size     = Vector2i(pixel_to_pos(Vector2f(m_image->size())) - Vector2f(top_left));
+	m_mouseover_pixel_callback(pos_to_pixel(p));
+  }
+  return true;
+}
+
 NAMESPACE_END(nanogui)
