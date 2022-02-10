@@ -96,9 +96,10 @@ bool ImageViewFalsecolor::mouse_motion_event(const Vector2i &p, const Vector2i &
 	return true;
   }
   if (m_mouseover_pixel_callback) {
-	//Vector2i top_left = Vector2i(pixel_to_pos(Vector2f(0.f, 0.f)));
-	//size     = Vector2i(pixel_to_pos(Vector2f(m_image->size())) - Vector2f(top_left));
-	m_mouseover_pixel_callback(pos_to_pixel(p));
+	// subtract m_pos from the position of the mouse. m_pos should point to the upper-left corner (0,0) of the widget
+	// and can thus be used to correctly handle stacked widgets (i.e. there are widgets above this or left of this widget
+	// that influence the actual top-left coordinate of this)
+	m_mouseover_pixel_callback(pos_to_pixel(Vector2f{p.x() + .5f, p.y() + .5f}-Vector2f(m_pos)));
   }
   return true;
 }
