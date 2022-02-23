@@ -24,62 +24,67 @@ NAMESPACE_BEGIN(nanogui)
  */
 class NANOGUI_EXPORT ImageView : public Canvas {
 public:
-    using PixelCallback = std::function<void(const Vector2i &, char **, size_t)>;
+  using PixelCallback = std::function<void(const Vector2i &, char **, size_t)>;
 
-    /// Initialize the widget
-    ImageView(Widget *parent);
+  /// Initialize the widget
+  ImageView(Widget *parent);
 
-    /// Return the currently active image
-    Texture *image() { return m_image; }
-    /// Return the currently active image (const version)
-    const Texture *image() const { return m_image.get(); }
-    /// Set the currently active image
-    void set_image(Texture *image);
+  /// Return the currently active image
+  Texture *image() { return m_image; }
+  /// Return the currently active image (const version)
+  const Texture *image() const { return m_image.get(); }
+  /// Set the currently active image
+  void set_image(Texture *image);
 
-    /// Center the image on the screen
-    void center();
+  /// Center the image on the screen
+  void center();
 
-    /// Center the image on the screen and set the scale to 1:1
-    void reset();
+  /// Center the image on the screen and set the scale to 1:1
+  void reset();
 
-    /// Set the callback that is used to acquire information about pixel components
-    void set_pixel_callback(const PixelCallback &pixel_callback) {
-        m_pixel_callback = pixel_callback;
-    }
-    /// Return the callback that is used to acquire information about pixel components
-    const PixelCallback &pixel_callback() const { return m_pixel_callback; }
+  /// Set the callback that is used to acquire information about pixel components
+  void set_pixel_callback(const PixelCallback &pixel_callback) {
+    m_pixel_callback = pixel_callback;
+  }
+  /// Return the callback that is used to acquire information about pixel components
+  const PixelCallback &pixel_callback() const { return m_pixel_callback; }
 
-    /// Return the pixel offset of the zoomed image rectangle
-    Vector2f offset() const { return m_offset; }
-    /// Set the pixel offset of the zoomed image rectangle
-    void set_offset(const Vector2f &offset) { m_offset = offset; }
+  /// Return the pixel offset of the zoomed image rectangle
+  Vector2f offset() const { return m_offset; }
+  /// Set the pixel offset of the zoomed image rectangle
+  void set_offset(const Vector2f &offset) { m_offset = offset; }
 
-    /// Return the current magnification of the image
-    float scale() const;
-    /// Set the current magnification of the image
-    void set_scale(float scale);
+  /// Return the current magnification of the image
+  float scale() const;
+  /// Set the current magnification of the image
+  void set_scale(float scale);
 
-    /// Convert a position within the widget to a pixel position in the image
-    Vector2f pos_to_pixel(const Vector2f &p) const;
-    /// Convert a pixel position in the image to a position within the widget
-    Vector2f pixel_to_pos(const Vector2f &p) const;
+  /// Convert a position within the widget to a pixel position in the image
+  Vector2f pos_to_pixel(const Vector2f &p) const;
+  /// Convert a pixel position in the image to a position within the widget
+  Vector2f pixel_to_pos(const Vector2f &p) const;
 
-    // Widget implementation
-    virtual bool keyboard_event(int key, int scancode, int action, int modifiers) override;
-    virtual bool mouse_drag_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
-    virtual bool scroll_event(const Vector2i &p, const Vector2f &rel) override;
-    virtual void draw(NVGcontext *ctx) override;
-    virtual void draw_contents() override;
+  // Widget implementation
+  virtual bool keyboard_event(int key, int scancode, int action, int modifiers) override;
+  virtual bool mouse_drag_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
+  virtual bool scroll_event(const Vector2i &p, const Vector2f &rel) override;
+  virtual void draw(NVGcontext *ctx) override;
+  virtual void draw_contents() override;
 
+  virtual /// set the exposure value of the image. Implementation inspired by what Thomas Müller did for his nanogui version in the PPG implementation
+  void set_exposure(float exposure);
 protected:
-    nanogui::ref<Shader> m_image_shader;
-    nanogui::ref<Texture> m_image;
-    float m_scale = 0;
-    Vector2f m_offset = 0;
-    bool m_draw_image_border;
-    Color m_image_border_color;
-    Color m_image_background_color;
-    PixelCallback m_pixel_callback;
+  nanogui::ref<Shader> m_image_shader;
+  nanogui::ref<Texture> m_image;
+  float m_scale = 0;
+  Vector2f m_offset = 0;
+  bool m_draw_image_border;
+  Color m_image_border_color;
+  Color m_image_background_color;
+  PixelCallback m_pixel_callback;
+
+  /// Added for exposure control
+  float m_exposure = 0;
 };
 
 NAMESPACE_END(nanogui)

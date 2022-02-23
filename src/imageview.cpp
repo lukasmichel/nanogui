@@ -225,9 +225,15 @@ void ImageView::draw_contents() {
     m_image_shader->set_uniform("matrix_background", Matrix4f(matrix_background));
     m_image_shader->set_uniform("background_color",  m_image_background_color);
 
+    // set the initial value for the exposure to 0 - by Lukas Michel
+    m_image_shader->set_uniform("exposure", m_exposure);
+
     m_image_shader->begin();
     m_image_shader->draw_array(Shader::PrimitiveType::Triangle, 0, 6, false);
     m_image_shader->end();
 }
-
+/// set the exposure value of the image. Implementation inspired by what Thomas Müller did for his nanogui version in the PPG implementation - by Lukas Michel
+void ImageView::set_exposure(float exposure){
+  m_exposure= exposure;
+}
 NAMESPACE_END(nanogui)
