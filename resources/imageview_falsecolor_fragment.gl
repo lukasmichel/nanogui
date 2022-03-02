@@ -44,7 +44,7 @@ vec3 TurboColormap(in float x) {
 
 void main() {
     vec4 value = texture(image, uv);
-    float grayScale = pow(pow(2.0, exposure)*value.r,1.0/2.2);
+    float grayScale = pow(2.0, exposure)*value.r;
     //float grayScale = pow(2.0, exposure)*value.r;
     frag_color=vec4(TurboColormap(grayScale),1.0);
 }
