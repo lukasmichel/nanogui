@@ -43,15 +43,15 @@ vec3 TurboColormap(in float x) {
 }
 
 /// version for turbo color scheme
-//void main() {
-//    vec4 value = texture(image, uv);
-//    float grayScale = pow(2.0, exposure)*value.r;
-//    //float grayScale = pow(2.0, exposure)*value.r;
-//    frag_color=vec4(TurboColormap(grayScale),1.0);
-//}
+void main() {
+    vec4 value = texture(image, uv);
+    float grayScale = pow(2.0, exposure)*value.r;
+    //float grayScale = pow(2.0, exposure)*value.r;
+    frag_color=vec4(TurboColormap(grayScale),1.0);
+}
 
 /// Shader version from original PPG code. For comparability of representation
-vec3 getColour(float v) {
+/*vec3 getColour(float v) {
             vec3 c = vec3(1.0);
             v = clamp(v, 0.0, 1.0);
 
@@ -72,7 +72,7 @@ vec3 getColour(float v) {
             return c;
         }
 
-        void main() {
-            float grayScale = pow(pow(2.0, exposure) * texture(image, uv).r, 1.0 / 2.2);
-            frag_color = vec4(getColour(grayScale), 1.0);
-        }
+void main() {
+    float grayScale = pow(pow(2.0, exposure) * texture(image, uv).r, 1.0 / 2.2);
+    frag_color = vec4(getColour(grayScale), 1.0);
+}*/
