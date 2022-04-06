@@ -149,9 +149,9 @@ void ImageView::draw(NVGcontext *ctx) {
     nvgSave(ctx);
     nvgIntersectScissor(ctx, m_pos.x(), m_pos.y(), m_size.x(), m_size.y());
 
-    if (scale() > 100 && m_pixel_callback) {
-        float font_size = scale() / 10.f;
-        float alpha = std::min(1.f, (scale() - 100) / 100.f);
+    if (scale() > 20 && m_pixel_callback) {
+        float font_size = scale() / 5.f;
+        float alpha = std::min(1.f, (scale() - 20) / 20.f);
         nvgFontSize(ctx, font_size);
         nvgFontFace(ctx, "sans-bold");
         nvgTextAlign(ctx, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
