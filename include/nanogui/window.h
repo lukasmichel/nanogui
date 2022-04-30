@@ -59,6 +59,9 @@ public:
     virtual Vector2i preferred_size(NVGcontext *ctx) const override;
     /// Invoke the associated layout generator to properly place child widgets, if any
     virtual void perform_layout(NVGcontext *ctx) override;
+
+    bool toggle_minimize();
+
 protected:
     /// Internal helper function to maintain nested window position values; overridden in \ref Popup
     virtual void refresh_relative_placement();
@@ -67,6 +70,8 @@ protected:
     Widget *m_button_panel;
     bool m_modal;
     bool m_drag;
+    bool m_minimized=false;
+    int m_height_not_minimized;
 };
 
 NAMESPACE_END(nanogui)
