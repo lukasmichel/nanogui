@@ -426,7 +426,7 @@ add_library(nanogui ${NANOGUI_LIBRARY_TYPE}
   include/nanogui/opengl.h
   include/nanogui/nanogui.h
   include/nanogui/imageview_falsecolor.h src/imageview_falsecolor.cpp
-)
+        include/nanogui/ParentedScreen.hpp)
 
 target_compile_definitions(nanogui
   PUBLIC
