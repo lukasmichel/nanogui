@@ -5,9 +5,8 @@
 
 #pragma once
 
-#include <nanogui/widget.h>
-#include <nanogui/texture.h>
 #include <nanogui/screen.h>
+#include <nanogui/texture.h>
 #include <nanogui/widget.h>
 
 class Texture;
@@ -15,7 +14,7 @@ class Texture;
 NAMESPACE_BEGIN(nanogui)
 class ParentedScreen : public Screen {
 public:
-  ParentedScreen(Screen *parent, const Vector2i &size, const std::string &caption = "Unnamed",
+  ParentedScreen(const Vector2i &size, const std::string &caption = "Unnamed",
                  bool resizable = true,
                  bool fullscreen = false,
                  bool depth_buffer = true,
@@ -30,96 +29,42 @@ public:
                                                      stencil_buffer,
                                                      float_buffer,
                                                      gl_major,
-                                                     gl_minor),
-                                              m_parent(parent) {
-    parent->add_child(this);
+                                                     gl_minor) {
     this->m_resize_callback = [&, this](Vector2i size) {
+      //Vector2i saveSize{size};
       bool repeat;
+      //this->perform_layout();
+      int oldHeight = 0;
+      for (auto c: m_children)
+        oldHeight += c->height();
       do {
         repeat = false;
-        for (auto child: m_children) {
-          {
-            child->set_size(size);
-            auto c_size = child->size();
-            if (c_size != size) {
-              repeat = true;
-              break;
-            }
+        //for (auto child: m_children) {
+        float heightRescaleFactor = float(size[1] - this->m_theme->m_window_header_height) / float(oldHeight);
+
+        for (auto it = m_children.rbegin(); it != m_children.rend(); it++) {
+          auto child = *it;
+          child->set_width(size[0]);
+          int newChildHeight = std::floor(float(child->height()) * heightRescaleFactor);
+          child->set_height(newChildHeight);
+          child->perform_layout(m_nvg_context);
+          /*if (child->width() > size[0]) {
+           size[0] = child->width();
+           repeat = true;
           }
+          if (child->height() > newChildHeight) {
+           size[1] += child->height() - newChildHeight;
+           repeat = true;
+          }*/
         }
       } while (repeat);
+      this->perform_layout();
+      /*Vector2i newSize{0, 0};
+      for (auto c: m_children)
+       newSize += c->size();
+      if (newSize != saveSize)
+       resize_callback_event(size[0], size[1]);*/
     };
-  }
-
-  ParentedScreen(Screen *parent) : Screen(parent->size(),
-                                          parent->caption(),
-                                          true,
-                                          false,
-                                          parent->has_depth_buffer(),
-                                          parent->has_stencil_buffer(),
-                                          parent->has_float_buffer(),
-                                          3,
-                                          2) {
-    parent->add_child(this);
-    this->m_resize_callback = [&, this](Vector2i size) {
-      bool repeat;
-      do {
-        repeat = false;
-        for (auto child: m_children) {
-          {
-            child->set_size(size);
-            auto c_size = child->size();
-            if (c_size != size) {
-              repeat = true;
-              break;
-            }
-          }
-        }
-      } while (repeat);
-    };
-  }
-
-  bool keyboard_event(int key, int scancode, int action, int modifiers) override {
-    bool r = m_parent->keyboard_event(key, scancode, action, modifiers);
-    //r |= Screen::keyboard_event(key, scancode, action, modifiers);
-    return r;
-  }
-
-  bool keyboard_character_event(unsigned int codepoint) override {
-    bool r = m_parent->keyboard_character_event(codepoint);
-    //r |= Screen::keyboard_character_event(codepoint);
-    return r;
-  }
-
-  bool mouse_button_event(const Vector2i &p, int button, bool down, int modifiers) override {
-    bool r = m_parent->mouse_button_event(p, button, down, modifiers);
-    //r |= Widget::mouse_button_event(p, button, down, modifiers);
-    return r;
-  }
-
-  bool mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
-    bool r = m_parent->mouse_motion_event(p, rel, button, modifiers);
-    //r |= Widget::mouse_motion_event(p, rel, button, modifiers);
-    return r;
-  }
-
-  bool mouse_drag_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
-    bool r = m_parent->mouse_drag_event(p, rel, button, modifiers);
-    //for (auto c: m_children)
-    //r |= c->mouse_drag_event(p, rel, button, modifiers);
-    return r;
-  }
-
-  bool mouse_enter_event(const Vector2i &p, bool enter) override {
-    bool r = m_parent->mouse_enter_event(p, enter);
-    //r |= Widget::mouse_enter_event(p, enter);
-    return r;
-  }
-
-  bool scroll_event(const Vector2i &p, const Vector2f &rel) override {
-    // bool r = m_parent->scroll_event(p, rel);
-    bool r = Widget::scroll_event(p, rel);
-    return r;
   }
 
 
@@ -147,7 +92,79 @@ public:
     Widget::perform_layout(m_nvg_context);
   }
 
-public:
+  bool keyboard_event(int key, int scancode, int action, int modifiers) override {
+    if (m_keyboard_event_callback)
+      m_keyboard_event_callback(key, scancode, action, modifiers);
+    return Screen::keyboard_event(key, scancode, action, modifiers);
+  }
+
+  bool mouse_button_event(const Vector2i &p, int button, bool down, int modifiers) override {
+    if (m_mouse_button_event_callback)
+      m_mouse_button_event_callback(p, button, down, modifiers);
+    return Widget::mouse_button_event(p, button, down, modifiers);
+  }
+
+  bool mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+    return Widget::mouse_motion_event(p, rel, button, modifiers);
+  }
+
+  bool mouse_drag_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+    return Widget::mouse_drag_event(p, rel, button, modifiers);
+  }
+
+  bool scroll_event(const Vector2i &p, const Vector2f &rel) override {
+    return Widget::scroll_event(p, rel);
+  }
+
+  const std::function<void(int, int, int, int)> &getMKeyboardEventCallback() const {
+    return m_keyboard_event_callback;
+  }
+
+  void setMKeyboardEventCallback(const std::function<void(int, int, int, int)> &mKeyboardEventCallback) {
+    m_keyboard_event_callback = mKeyboardEventCallback;
+  }
+
+  const std::function<void(const Vector2i &, int, bool, int)> &getMMouseButtonEventCallback() const {
+    return m_mouse_button_event_callback;
+  }
+
+  void
+  setMMouseButtonEventCallback(const std::function<void(const Vector2i &, int, bool, int)> &mMouseButtonEventCallback) {
+    m_mouse_button_event_callback = mMouseButtonEventCallback;
+  }
+
+  const std::function<void(const Vector2i &, const Vector2i &, int, int)> &getMMouseMotionEventCallback() const {
+    return m_mouse_motion_event_callback;
+  }
+
+  void setMMouseMotionEventCallback(
+      const std::function<void(const Vector2i &, const Vector2i &, int, int)> &mMouseMotionEventCallback) {
+    m_mouse_motion_event_callback = mMouseMotionEventCallback;
+  }
+
+  const std::function<void(const Vector2i &, const Vector2i &, int, int)> &getMMouseDragEventCallback() const {
+    return m_mouse_drag_event_callback;
+  }
+
+  void setMMouseDragEventCallback(
+      const std::function<void(const Vector2i &, const Vector2i &, int, int)> &mMouseDragEventCallback) {
+    m_mouse_drag_event_callback = mMouseDragEventCallback;
+  }
+
+  const std::function<void(const Vector2i &, const Vector2i &)> &getMScrollEventCallback() const {
+    return m_scroll_event_callback;
+  }
+
+  void setMScrollEventCallback(const std::function<void(const Vector2i &, const Vector2i &)> &mScrollEventCallback) {
+    m_scroll_event_callback = mScrollEventCallback;
+  }
+
+private:
   ref<Widget> m_parent;
+  std::function<void(int, int, int, int)> m_keyboard_event_callback;
+  std::function<void(const Vector2i &, int, bool, int)> m_mouse_button_event_callback;
+  std::function<void(const Vector2i &, const Vector2i &, int, int)> m_mouse_motion_event_callback;
+  std::function<void(const Vector2i &, const Vector2i &, int, int)> m_mouse_drag_event_callback;
+  std::function<void(const Vector2i &, const Vector2i &)> m_scroll_event_callback;
 };
 NAMESPACE_END(nanogui)
