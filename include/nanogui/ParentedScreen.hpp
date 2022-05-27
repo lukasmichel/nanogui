@@ -68,29 +68,6 @@ public:
   }
 
 
-  Vector2i preferred_size(NVGcontext *ctx) const override {
-    return Widget::preferred_size(m_nvg_context);
-  }
-
-  Vector2i preferred_size() const {
-    return Widget::preferred_size(m_nvg_context);
-  }
-
-  void draw(NVGcontext *ctx) override {
-    Widget::draw(m_nvg_context);
-  }
-
-  void draw() {
-    Widget::draw(m_nvg_context);
-  }
-
-  void perform_layout(NVGcontext *ctx) override {
-    Widget::perform_layout(m_nvg_context);
-  }
-
-  void perform_layout() {
-    Widget::perform_layout(m_nvg_context);
-  }
 
   bool keyboard_event(int key, int scancode, int action, int modifiers) override {
     if (m_keyboard_event_callback)
@@ -101,27 +78,27 @@ public:
   bool mouse_button_event(const Vector2i &p, int button, bool down, int modifiers) override {
     if (m_mouse_button_event_callback)
       m_mouse_button_event_callback(p, button, down, modifiers);
-    return Widget::mouse_button_event(p, button, down, modifiers);
+    return Screen::mouse_button_event(p, button, down, modifiers);
   }
 
   bool mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
-    return Widget::mouse_motion_event(p, rel, button, modifiers);
+    return Screen::mouse_motion_event(p, rel, button, modifiers);
   }
 
   bool mouse_drag_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
-    return Widget::mouse_drag_event(p, rel, button, modifiers);
+    return Screen::mouse_drag_event(p, rel, button, modifiers);
   }
 
   bool scroll_event(const Vector2i &p, const Vector2f &rel) override {
-    return Widget::scroll_event(p, rel);
+    return Screen::scroll_event(p, rel);
   }
 
-  const std::function<void(int, int, int, int)> &getMKeyboardEventCallback() const {
+  const std::function<void(int, int, int, int)> &getKeyboardEventCallback() const {
     return m_keyboard_event_callback;
   }
 
-  void setMKeyboardEventCallback(const std::function<void(int, int, int, int)> &mKeyboardEventCallback) {
-    m_keyboard_event_callback = mKeyboardEventCallback;
+  void setKeyboardEventCallback(const std::function<void(int, int, int, int)> &KeyboardEventCallback) {
+    m_keyboard_event_callback = KeyboardEventCallback;
   }
 
   const std::function<void(const Vector2i &, int, bool, int)> &getMMouseButtonEventCallback() const {
