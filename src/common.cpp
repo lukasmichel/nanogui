@@ -108,15 +108,10 @@ void mainloop(float refresh) {
 
         for (auto kv : __nanogui_screens) {
             Screen *screen = kv.second;
-
-            if (!screen || !screen->visible()) {
+            if (!screen->visible()) {
                 continue;
             } else if (glfwWindowShouldClose(screen->glfw_window())) {
                 screen->set_visible(false);
-                // if the screen shall shutdown GLFW, call its detructor, which does exactly that.
-                if(screen->shutdown_glfw()) {
-                  delete screen;
-                }
                 continue;
             }
             #if defined(EMSCRIPTEN)
