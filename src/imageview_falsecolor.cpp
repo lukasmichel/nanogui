@@ -104,4 +104,16 @@ bool ImageViewFalsecolor::mouse_motion_event(const Vector2i &p, const Vector2i &
   return true;
 }
 
+bool ImageViewFalsecolor::mouse_button_event(const Vector2i &p, int button, bool down, int modifiers) {
+  if(Widget::mouse_button_event(p, button, down, modifiers))
+    return true;
+  if (m_mousebutton_pixel_callback) {
+    // subtract m_pos from the position of the mouse. m_pos should point to the upper-left corner (0,0) of the widget
+    // and can thus be used to correctly handle stacked widgets (i.e. there are widgets above this or left of this widget
+    // that influence the actual top-left coordinate of this)
+    m_mousebutton_pixel_callback(pos_to_pixel(Vector2f{p.x() + .5f, p.y() + .5f}-Vector2f(m_pos)));
+  }
+  return true;
+}
+
 NAMESPACE_END(nanogui)

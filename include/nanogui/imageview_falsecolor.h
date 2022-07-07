@@ -28,6 +28,7 @@ class NANOGUI_EXPORT ImageViewFalsecolor : public ImageView {
 public:
 
   using MouseoverPixelCallback = std::function<void(const Vector2i &)>;
+  using MousebuttonPixelCallback = std::function<void(const Vector2i &)>;
 
   /// Initialize the widget
   ImageViewFalsecolor(Widget *parent);
@@ -39,11 +40,19 @@ public:
   void set_mouseover_pixel_callback(const MouseoverPixelCallback &mouseover_pixel_callback) {
 	m_mouseover_pixel_callback = mouseover_pixel_callback;
   }
+
+  void set_mousebutton_pixel_callback(const MousebuttonPixelCallback &mousebutton_pixel_callback) {
+    m_mousebutton_pixel_callback = mousebutton_pixel_callback;
+  }
+
+  bool mouse_button_event(const Vector2i &p, int button, bool down, int modifiers) override;
+
 private:
   /// Added for exposure control
   float m_exposure = 0;
 protected:
   MouseoverPixelCallback m_mouseover_pixel_callback;
+  MousebuttonPixelCallback m_mousebutton_pixel_callback;
 };
 
 NAMESPACE_END(nanogui)
