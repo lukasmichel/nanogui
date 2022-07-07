@@ -43,6 +43,7 @@ static GLuint compile_gl_shader(GLenum type,
 
     std::string msg = std::string("compile_gl_shader(): unable to compile ") +
                       type_str + " \"" + name + "\":\n\n" + error_shader;
+    printf("%s", msg.c_str());
     throw std::runtime_error(msg);
   }
 
