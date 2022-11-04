@@ -1,13 +1,13 @@
 cmake_minimum_required (VERSION 3.13..3.18)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 
 # Extract project version from source
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/nanogui/common.h"
-  nanogui_version_defines REGEX "#define NANOGUI_VERSION_(MAJOR|MINOR|PATCH) ")
+        nanogui_version_defines REGEX "#define NANOGUI_VERSION_(MAJOR|MINOR|PATCH) ")
 
 foreach(ver ${nanogui_version_defines})
   if(ver MATCHES [[#define NANOGUI_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$]])
-      set(NANOGUI_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}")
+    set(NANOGUI_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}")
   endif()
 endforeach()
 
@@ -22,25 +22,25 @@ set(NANOGUI_VERSION "${NANOGUI_VERSION_MAJOR}.${NANOGUI_VERSION_MINOR}.${NANOGUI
 message(STATUS "NanoGUI v${NANOGUI_VERSION} ${NANOGUI_VERSION_TYPE}")
 
 project(nanogui
-  DESCRIPTION
-    "NanoGUI"
-  LANGUAGES
-    CXX C
-  VERSION
-    ${NANOGUI_VERSION}
-)
+        DESCRIPTION
+        "NanoGUI"
+        LANGUAGES
+        CXX C
+        VERSION
+        ${NANOGUI_VERSION}
+        )
 
 if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/src")
   message(FATAL_ERROR "The NanoGUI dependency repositories (GLFW, etc.) are missing! "
-    "You probably did not clone the project with --recursive. It is possible to recover "
-    "by calling \"git submodule update --init --recursive\"")
+          "You probably did not clone the project with --recursive. It is possible to recover "
+          "by calling \"git submodule update --init --recursive\"")
 endif()
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'Release' as none was specified.")
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-    "MinSizeRel" "RelWithDebInfo")
+          "MinSizeRel" "RelWithDebInfo")
 endif()
 string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
 
@@ -80,7 +80,8 @@ endif()
 
 if (MSVC)
   set(NANOGUI_NATIVE_FLAGS_DEFAULT "")
-elseif (APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+elseif (APPLE AND ((CMAKE_OSX_ARCHITECTURES MATCHES "arm64") OR
+(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64")))
   # Apple M1 compatibility
   set(NANOGUI_NATIVE_FLAGS_DEFAULT "-mcpu=apple-a12")
 else()
@@ -95,12 +96,12 @@ option(NANOGUI_BUILD_GLFW                "Build GLFW?" ${NANOGUI_BUILD_GLFW_DEFA
 option(NANOGUI_INSTALL                   "Install NanoGUI on `make install`?" ON)
 
 set(NANOGUI_NATIVE_FLAGS ${NANOGUI_NATIVE_FLAGS_DEFAULT} CACHE STRING
-    "Compilation flags used to target the host processor architecture.")
+        "Compilation flags used to target the host processor architecture.")
 
 if (NOT NANOGUI_BACKEND)
   if (CMAKE_SYSTEM_PROCESSOR MATCHES "armv7" OR
-      CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR
-      CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
+          CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR
+          CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
     set(NANOGUI_BACKEND_DEFAULT "GLES 2")
   elseif (APPLE)
     set(NANOGUI_BACKEND_DEFAULT "Metal")
@@ -130,10 +131,10 @@ endmacro()
 
 if (NANOGUI_BACKEND MATCHES "(OpenGL|GLES 2|GLES 3)")
   list(APPEND NANOGUI_EXTRA
-    src/texture_gl.cpp src/shader_gl.cpp
-    src/renderpass_gl.cpp src/opengl.cpp
-    src/opengl_check.h
-  )
+          src/texture_gl.cpp src/shader_gl.cpp
+          src/renderpass_gl.cpp src/opengl.cpp
+          src/opengl_check.h
+          )
 endif()
 
 if (NANOGUI_BACKEND STREQUAL "OpenGL")
@@ -151,9 +152,9 @@ elseif (NANOGUI_BACKEND STREQUAL "GLES 3")
 elseif (NANOGUI_BACKEND STREQUAL "Metal")
   set(NANOGUI_BACKEND_DEFS -DNANOGUI_USE_METAL)
   list(APPEND NANOGUI_EXTRA
-    ext/nanovg_metal/src/nanovg_mtl.m ext/nanovg_metal/src/nanovg_mtl.h
-    src/texture_metal.mm src/shader_metal.mm src/renderpass_metal.mm
-  )
+          ext/nanovg_metal/src/nanovg_mtl.m ext/nanovg_metal/src/nanovg_mtl.h
+          src/texture_metal.mm src/shader_metal.mm src/renderpass_metal.mm
+          )
   set(NANOGUI_GLOB "resources/*.metal")
   include_directories(ext/nanovg_metal/src)
   message(STATUS "NanoGUI: using Metal backend.")
@@ -193,7 +194,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Prefer libc++ in conjunction with Clang
 #if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_FLAGS MATCHES "-stdlib=libc\\+\\+")
-#  CHECK_CXX_COMPILER_AND_LINKER_FLAGS(HAS_LIBCPP "-stdlib=libc+" "-stdlib=libc+")
+#  CHECK_CXX_COMPILER_AND_LINKER_FLAGS(HAS_LIBCPP "-stdlib=libc++" "-stdlib=libc++")
 #  if (APPLE OR HAS_LIBCPP)
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -D_LIBCPP_VERSION")
 #    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
@@ -201,13 +202,16 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 #    message(STATUS "NanoGUI: using libc++.")
 #  else()
 #    CHECK_CXX_COMPILER_AND_LINKER_FLAGS(HAS_LIBCPP_AND_CPPABI "-stdlib=libc++" "-stdlib=libc++ -lc++abi")
-#    if (HAS_LIBCPP_AND_CPPABI)
+ #   if (HAS_LIBCPP_AND_CPPABI)
 #      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -D_LIBCPP_VERSION")
 #      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 #      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 #      message(STATUS "NanoGUI: using libc++ and libc++abi.")
 #    else()
-#      message(FATAL_ERROR "When Clang is used to compile NanoGUI, libc++ must be available -- GCC's libstdc++ is not supported! (please insteall the libc++ development headers, provided e.g. by the packages 'libc++-dev' and 'libc++abi-dev' on Debian/Ubuntu).")
+#      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+#      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+#      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
+#      message(STATUS "NanoGUI: using libstdc++.")
 #    endif()
 #  endif()
 #endif()
@@ -237,21 +241,21 @@ if (NANOGUI_BUILD_GLFW)
   set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   mark_as_advanced(
-    GLFW_BUILD_DOCS GLFW_BUILD_EXAMPLES GLFW_BUILD_INSTALL GLFW_BUILD_TESTS
-    GLFW_DOCUMENT_INTERNALS GLFW_INSTALL GLFW_USE_CHDIR GLFW_USE_MENUBAR
-    GLFW_USE_OSMESA GLFW_VULKAN_STATIC GLFW_USE_RETINA GLFW_USE_MIR
-    BUILD_SHARED_LIBS USE_MSVC_RUNTIME_LIBRARY_DLL)
+          GLFW_BUILD_DOCS GLFW_BUILD_EXAMPLES GLFW_BUILD_INSTALL GLFW_BUILD_TESTS
+          GLFW_DOCUMENT_INTERNALS GLFW_INSTALL GLFW_USE_CHDIR GLFW_USE_MENUBAR
+          GLFW_USE_OSMESA GLFW_VULKAN_STATIC GLFW_USE_RETINA GLFW_USE_MIR
+          BUILD_SHARED_LIBS USE_MSVC_RUNTIME_LIBRARY_DLL)
 endif()
 
 if (NANOGUI_BUILD_GLAD)
   # Build and include GLAD on Windows
   list(APPEND NANOGUI_EXTRA
-    ext/glad/src/glad.c
-    ext/glad/include/glad/glad.h
-    ext/glad/include/KHR/khrplatform.h)
+          ext/glad/src/glad.c
+          ext/glad/include/glad/glad.h
+          ext/glad/include/KHR/khrplatform.h)
   if (MSVC)
     set_source_files_properties(ext/glad/src/glad.c
-      PROPERTIES COMPILE_FLAGS /wd4055)
+            PROPERTIES COMPILE_FLAGS /wd4055)
   endif()
 endif()
 
@@ -319,8 +323,8 @@ endif()
 
 # Glob up resource files
 file(GLOB resources
-  "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.ttf"
-  "${NANOGUI_GLOB}")
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.ttf"
+        "${NANOGUI_GLOB}")
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/resources")
 
@@ -330,10 +334,10 @@ foreach(fname_in IN LISTS resources)
     get_filename_component(fname_out ${fname_in} NAME)
     set(fname_out "${CMAKE_CURRENT_BINARY_DIR}/resources/${fname_out}lib")
     add_custom_command(
-        OUTPUT ${fname_out}
-        DEPENDS ${fname_in}
-        COMMAND xcrun -sdk macosx metal -std=osx-metal2.0 -O3 "${fname_in}" -o "${fname_out}"
-        VERBATIM
+            OUTPUT ${fname_out}
+            DEPENDS ${fname_in}
+            COMMAND xcrun -sdk macosx metal -std=osx-metal2.0 -O3 "${fname_in}" -o "${fname_out}"
+            VERBATIM
     )
   else()
     set(fname_out "${fname_in}")
@@ -347,19 +351,19 @@ string(REGEX REPLACE "[\\](.)" "\\1" resources_string "${resources_string}")
 
 # Create command line for running bin2c cmake script
 set(bin2c_cmdline
-  -DOUTPUT_C=nanogui_resources.cpp
-  -DOUTPUT_H=nanogui_resources.h
-  "-DINPUT_FILES=${resources_string}"
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/resources/bin2c.cmake")
+        -DOUTPUT_C=nanogui_resources.cpp
+        -DOUTPUT_H=nanogui_resources.h
+        "-DINPUT_FILES=${resources_string}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/resources/bin2c.cmake")
 
 
 # Run bin2c on resource files
 add_custom_command(
-  OUTPUT nanogui_resources.cpp nanogui_resources.h
-  COMMAND ${CMAKE_COMMAND} ARGS ${bin2c_cmdline}
-  DEPENDS ${resources} ${resources_processed}
-  COMMENT "Running bin2c"
-  PRE_BUILD VERBATIM)
+        OUTPUT nanogui_resources.cpp nanogui_resources.h
+        COMMAND ${CMAKE_COMMAND} ARGS ${bin2c_cmdline}
+        DEPENDS ${resources} ${resources_processed}
+        COMMENT "Running bin2c"
+        PRE_BUILD VERBATIM)
 
 # Needed to generated files
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -382,86 +386,86 @@ endif()
 
 # Compile main NanoGUI library
 add_library(nanogui ${NANOGUI_LIBRARY_TYPE}
-  # Merge NanoVG into the NanoGUI library
-  ext/nanovg/src/nanovg.c
-  ext/nanovg/src/stb_image.h
+        # Merge NanoVG into the NanoGUI library
+        ext/nanovg/src/nanovg.c
+        ext/nanovg/src/stb_image.h
 
-  # Merge GLAD into the NanoGUI library (only if needed)
-  ${NANOGUI_EXTRA}
+        # Merge GLAD into the NanoGUI library (only if needed)
+        ${NANOGUI_EXTRA}
 
-  # Fonts etc.
-  nanogui_resources.cpp
-  include/nanogui/common.h src/common.cpp
-  include/nanogui/widget.h src/widget.cpp
-  include/nanogui/theme.h src/theme.cpp
-  include/nanogui/layout.h src/layout.cpp
-  include/nanogui/screen.h src/screen.cpp
-  include/nanogui/label.h src/label.cpp
-  include/nanogui/window.h src/window.cpp
-  include/nanogui/popup.h src/popup.cpp
-  include/nanogui/checkbox.h src/checkbox.cpp
-  include/nanogui/button.h src/button.cpp
-  include/nanogui/popupbutton.h src/popupbutton.cpp
-  include/nanogui/combobox.h src/combobox.cpp
-  include/nanogui/progressbar.h src/progressbar.cpp
-  include/nanogui/slider.h src/slider.cpp
-  include/nanogui/messagedialog.h src/messagedialog.cpp
-  include/nanogui/textbox.h src/textbox.cpp
-  include/nanogui/textarea.h src/textarea.cpp
-  include/nanogui/imagepanel.h src/imagepanel.cpp
-  include/nanogui/vscrollpanel.h src/vscrollpanel.cpp
-  include/nanogui/colorwheel.h src/colorwheel.cpp
-  include/nanogui/colorpicker.h src/colorpicker.cpp
-  include/nanogui/graph.h src/graph.cpp
-  include/nanogui/tabwidget.h src/tabwidget.cpp
-  include/nanogui/canvas.h src/canvas.cpp
-  include/nanogui/texture.h src/texture.cpp
-  include/nanogui/shader.h src/shader.cpp
-  include/nanogui/imageview.h src/imageview.cpp
-  include/nanogui/traits.h src/traits.cpp
-  include/nanogui/renderpass.h
-  include/nanogui/formhelper.h
-  include/nanogui/icons.h
-  include/nanogui/toolbutton.h
-  include/nanogui/opengl.h
-  include/nanogui/nanogui.h
+        # Fonts etc.
+        nanogui_resources.cpp
+        include/nanogui/common.h src/common.cpp
+        include/nanogui/widget.h src/widget.cpp
+        include/nanogui/theme.h src/theme.cpp
+        include/nanogui/layout.h src/layout.cpp
+        include/nanogui/screen.h src/screen.cpp
+        include/nanogui/label.h src/label.cpp
+        include/nanogui/window.h src/window.cpp
+        include/nanogui/popup.h src/popup.cpp
+        include/nanogui/checkbox.h src/checkbox.cpp
+        include/nanogui/button.h src/button.cpp
+        include/nanogui/popupbutton.h src/popupbutton.cpp
+        include/nanogui/combobox.h src/combobox.cpp
+        include/nanogui/progressbar.h src/progressbar.cpp
+        include/nanogui/slider.h src/slider.cpp
+        include/nanogui/messagedialog.h src/messagedialog.cpp
+        include/nanogui/textbox.h src/textbox.cpp
+        include/nanogui/textarea.h src/textarea.cpp
+        include/nanogui/imagepanel.h src/imagepanel.cpp
+        include/nanogui/vscrollpanel.h src/vscrollpanel.cpp
+        include/nanogui/colorwheel.h src/colorwheel.cpp
+        include/nanogui/colorpicker.h src/colorpicker.cpp
+        include/nanogui/graph.h src/graph.cpp
+        include/nanogui/tabwidget.h src/tabwidget.cpp
+        include/nanogui/canvas.h src/canvas.cpp
+        include/nanogui/texture.h src/texture.cpp
+        include/nanogui/shader.h src/shader.cpp
+        include/nanogui/imageview.h src/imageview.cpp
+        include/nanogui/traits.h src/traits.cpp
+        include/nanogui/renderpass.h
+        include/nanogui/formhelper.h
+        include/nanogui/icons.h
+        include/nanogui/toolbutton.h
+        include/nanogui/opengl.h
+        include/nanogui/nanogui.h
   include/nanogui/imageview_falsecolor.h src/imageview_falsecolor.cpp
-)
+        )
 
 target_compile_definitions(nanogui
-  PUBLIC
-    ${NANOGUI_BACKEND_DEFS}
+        PUBLIC
+        ${NANOGUI_BACKEND_DEFS}
 
-  PRIVATE
-    -DNANOGUI_BUILD
-    -DNVG_STB_IMAGE_IMPLEMENTATION
-)
+        PRIVATE
+        -DNANOGUI_BUILD
+        -DNVG_STB_IMAGE_IMPLEMENTATION
+        )
 
 target_include_directories(nanogui
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 
-  PRIVATE
-    ext/nanovg/src
-    ${CMAKE_CURRENT_BINARY_DIR}
-)
+        PRIVATE
+        ext/nanovg/src
+        ${CMAKE_CURRENT_BINARY_DIR}
+        )
 
 if (NANOGUI_BUILD_SHARED)
   target_compile_definitions(nanogui
-    PUBLIC
-      -DNANOGUI_SHARED -DNVG_SHARED
-    PRIVATE
-      -DNVG_BUILD
-  )
+          PUBLIC
+          -DNANOGUI_SHARED -DNVG_SHARED
+          PRIVATE
+          -DNVG_BUILD
+          )
 
   if (NANOGUI_BUILD_GLAD)
     target_compile_definitions(nanogui
-      PUBLIC
-        -DGLAD_GLAPI_EXPORT
-      PRIVATE
-        -DGLAD_GLAPI_EXPORT_BUILD
-    )
+            PUBLIC
+            -DGLAD_GLAPI_EXPORT
+            PRIVATE
+            -DGLAD_GLAPI_EXPORT_BUILD
+            )
   endif()
 
   if (NANOGUI_BUILD_GLFW)
@@ -470,24 +474,25 @@ if (NANOGUI_BUILD_SHARED)
 endif()
 
 target_include_directories(nanogui PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanovg>)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanovg>)
 
 if (NANOGUI_BUILD_GLAD)
   target_compile_definitions(nanogui PUBLIC -DNANOGUI_GLAD)
   target_include_directories(nanogui PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/glad>)
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include>
+          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/glad>)
 endif()
 
 if (NANOGUI_BUILD_GLFW)
   target_include_directories(nanogui PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include>)
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include>)
 endif()
 
 if (NANOGUI_BUILD_SHARED)
   target_link_libraries(nanogui PRIVATE ${NANOGUI_LIBS})
-  set_property(TARGET nanogui PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+  set_property(TARGET nanogui PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+  set_property(TARGET nanogui PROPERTY INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
   set_property(TARGET nanogui PROPERTY DEFINE_SYMBOL "")
 else()
   target_link_libraries(nanogui PUBLIC ${NANOGUI_LIBS})
@@ -499,6 +504,9 @@ if (EXISTS /opt/vc/include)
 endif()
 
 if (NANOGUI_INSTALL)
+  include(GNUInstallDirs)
+  include(CMakePackageConfigHelpers)
+
   install(TARGETS nanogui
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -524,23 +532,23 @@ if (NANOGUI_INSTALL)
   set(NANOGUI_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/cmake/nanogui")
 
   configure_package_config_file(
-    resources/nanoguiConfig.cmake.in nanoguiConfig.cmake
-    INSTALL_DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
+          resources/nanoguiConfig.cmake.in nanoguiConfig.cmake
+          INSTALL_DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
 
   write_basic_package_version_file(
-    nanoguiConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion ARCH_INDEPENDENT)
+          nanoguiConfigVersion.cmake
+          VERSION ${PROJECT_VERSION}
+          COMPATIBILITY AnyNewerVersion ARCH_INDEPENDENT)
 
   install(
-    EXPORT nanoguiTargets
-    DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
+          EXPORT nanoguiTargets
+          DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
 
   install(
-    FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/nanoguiConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/nanoguiConfig.cmake
-    DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
+          FILES
+          ${CMAKE_CURRENT_BINARY_DIR}/nanoguiConfigVersion.cmake
+          ${CMAKE_CURRENT_BINARY_DIR}/nanoguiConfig.cmake
+          DESTINATION ${NANOGUI_CMAKECONFIG_INSTALL_DIR})
 endif()
 
 # Quench warnings while compiling NanoVG
@@ -570,28 +578,33 @@ endif()
 
 if (NANOGUI_BUILD_PYTHON)
   message(STATUS "NanoGUI: building the Python plugin.")
-  if (NOT TARGET pybind11::module)
+  if (NOT TARGET nanobind::module)
     if (SKBUILD)
+      # Constrain FindPython to find the Python version used by scikit-build
+      set(Python_VERSION "${PYTHON_VERSION_STRING}")
+
+      find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+
       execute_process(
-        COMMAND
-        "${PYTHON_EXECUTABLE}" -c
-        "import pybind11; print(pybind11.get_cmake_dir())"
-        OUTPUT_VARIABLE _tmp_dir
-        OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT)
-        list(APPEND CMAKE_PREFIX_PATH "${_tmp_dir}")
-      find_package(pybind11 CONFIG REQUIRED)
+              COMMAND
+              "${PYTHON_EXECUTABLE}" -c "import nanobind; print(nanobind.cmake_dir())"
+              OUTPUT_VARIABLE _tmp_dir
+              OUTPUT_STRIP_TRAILING_WHITESPACE)
+      list(APPEND CMAKE_PREFIX_PATH "${_tmp_dir}")
+
+      find_package(nanobind CONFIG REQUIRED)
     else()
-      find_package(Python COMPONENTS Interpreter Development REQUIRED)
+      find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
-      # Allow overriding the pybind11 library used to compile NanoGUI
-      set(NANOGUI_PYBIND11_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/pybind11"
-        CACHE STRING "Path containing the 'pybind11' library used to compile nanogui.")
+      # Allow overriding the nanobind library used to compile NanoGUI
+      set(NANOGUI_NANOBIND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind"
+              CACHE STRING "Path containing the 'nanobind' library used to compile nanogui.")
 
-      add_subdirectory(${NANOGUI_PYBIND11_DIR} ext/pybind11)
+      add_subdirectory(${NANOGUI_NANOBIND_DIR} ext/nanobind)
       mark_as_advanced(
-        USE_PYTHON_INCLUDE_DIR PYBIND11_INSTALL PYBIND11_TEST PYBIND11_NOPYTHON
-        PYBIND11_FINDPYTHON PYBIND11_PYTHON_VERSION PYBIND11_WERROR
-        NANOGUI_PYBIND11_DIR)
+              USE_PYTHON_INCLUDE_DIR NANOBIND_INSTALL NANOBIND_TEST NANOBIND_NOPYTHON
+              NANOBIND_FINDPYTHON NANOBIND_PYTHON_VERSION NANOBIND_WERROR
+              NANOGUI_NANOBIND_DIR)
     endif()
   endif()
   add_subdirectory(src/python)
@@ -616,15 +629,15 @@ if (NANOGUI_BUILD_PYTHON AND NANOGUI_MASTER_PROJECT)
   endforeach()
 
   add_custom_target(docstrings USES_TERMINAL COMMAND
-    ${Python_EXECUTABLE} -m pybind11_mkdoc -std=c++17 -stdlib=libc++
-    ${MKDOC_CXXFLAGS}
-    ${NANOGUI_BACKEND_DEFS}
-    -I${PROJECT_SOURCE_DIR}/include
-    -I${PROJECT_SOURCE_DIR}/ext/glfw/include
-    -I${PROJECT_SOURCE_DIR}/ext/nanovg/src
-    ${PROJECT_SOURCE_DIR}/include/nanogui/*.h
-    -o ${CMAKE_CURRENT_SOURCE_DIR}/src/python/py_doc.h
-  )
+          ${Python_EXECUTABLE} -m pybind11_mkdoc -std=c++17 -stdlib=libc++
+          ${MKDOC_CXXFLAGS}
+          ${NANOGUI_BACKEND_DEFS}
+          -I${PROJECT_SOURCE_DIR}/include
+          -I${PROJECT_SOURCE_DIR}/ext/glfw/include
+          -I${PROJECT_SOURCE_DIR}/ext/nanovg/src
+          ${PROJECT_SOURCE_DIR}/include/nanogui/*.h
+          -o ${CMAKE_CURRENT_SOURCE_DIR}/src/python/py_doc.h
+          )
 endif()
 
 # vim: set et ts=2 sw=2 ft=cmake nospell:

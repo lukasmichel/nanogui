@@ -24,10 +24,11 @@ NAMESPACE_BEGIN(nanogui)
 
 ImageViewFalsecolor::ImageViewFalsecolor(Widget *parent) : ImageView(parent) {
   // the shader is not referenced yet, has a reference count of 0 and thus will throw an error on deletion
-  if (m_image_shader->ref_count() == 0)
+  /*if (m_image_shader->ref_count() == 0)
 	m_image_shader->inc_ref();
   while (m_image_shader->ref_count() > 1)
-	m_image_shader->dec_ref(true);
+	m_image_shader->dec_ref(true);*/
+  m_image_shader.reset();
   //m_image_shader->dec_ref(true);
   m_image_shader = new Shader(
 	  render_pass(),
