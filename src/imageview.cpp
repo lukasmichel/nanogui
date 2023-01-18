@@ -95,15 +95,15 @@ bool ImageView::keyboard_event(int key, int /* scancode */, int action, int /* m
             reset();
             return true;
         }else if (key == GLFW_KEY_F) {
-          scale_to_fill_width();
+          scale_to_fill();
           return true;
         }
     }
     return false;
 }
 
-void ImageView::scale_to_fill_width() {
-  float scale = float(m_size[0]) / float(m_image->size()[0]);
+void ImageView::scale_to_fill() {
+  float scale = std::min(float(m_size[0]) / float(m_image->size()[0]), float(m_size[1]) / float(m_image->size()[1]));
   set_scale(scale);
   center();
 }
