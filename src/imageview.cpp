@@ -94,9 +94,18 @@ bool ImageView::keyboard_event(int key, int /* scancode */, int action, int /* m
         if (key == GLFW_KEY_R) {
             reset();
             return true;
+        }else if (key == GLFW_KEY_F) {
+          scale_to_fill_width();
+          return true;
         }
     }
     return false;
+}
+
+void ImageView::scale_to_fill_width() {
+  float scale = float(m_size[0]) / float(m_image->size()[0]);
+  set_scale(scale);
+  center();
 }
 
 bool ImageView::mouse_drag_event(const Vector2i & /* p */, const Vector2i &rel,

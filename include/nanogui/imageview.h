@@ -42,6 +42,9 @@ public:
   /// Center the image on the screen and set the scale to 1:1
   void reset();
 
+  /// Center the image on the screen and set the scale to fill its width
+  void scale_to_fill_width();
+
   /// Set the callback that is used to acquire information about pixel components
   void set_pixel_callback(const PixelCallback &pixel_callback) {
     m_pixel_callback = pixel_callback;
@@ -85,6 +88,7 @@ protected:
 
   /// Added for exposure control
   float m_exposure = 0;
+
 };
 
 NAMESPACE_END(nanogui)
